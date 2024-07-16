@@ -33,11 +33,12 @@ const requestGeoData = (name: string) =>
     ).then((resp) => resp.json())
   );
 
-const Geocoding = () => {
+const Geocoding = ({ onSetGeocode }: any) => {
   const [value, setValue] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [empty, setEmpty] = useState(false);
   const [resp, setResp] = useState<Array<GeocodeData>>();
+  const [list, setList] = useState<any>();
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -55,7 +56,10 @@ const Geocoding = () => {
             finalize(() => setLoading(false)),
             tap((resp) => {
               if (!resp.results) setEmpty(true);
-              else setEmpty(false);
+              else {
+                setEmpty(false);
+                setList(resp.results);
+              }
             }),
             filter((resp) => resp.results),
             map((resp) => resp.results),
@@ -68,7 +72,6 @@ const Geocoding = () => {
           setResp(v);
         },
         error: console.error,
-        complete: () => console.log("done"),
       });
 
     return () => sub.unsubscribe();
@@ -148,6 +151,9 @@ const Geocoding = () => {
     <Combobox
       onOptionSubmit={(optionValue) => {
         setValue(optionValue);
+        onSetGeocode(
+          list.find((v: GeocodeResponseItem) => (v.id = +optionValue))
+        );
         combobox.closeDropdown();
       }}
       store={combobox}
