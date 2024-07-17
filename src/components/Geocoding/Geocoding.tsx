@@ -7,6 +7,7 @@ import {
   TextInput,
   useCombobox,
 } from "@mantine/core";
+import { IconSearch } from "@tabler/icons-react";
 import { ChangeEvent, useEffect, useState } from "react";
 import { CircleFlag } from "react-circle-flags";
 import {
@@ -24,7 +25,6 @@ import { GeocodeData } from "../../types/GeocodeData.type";
 import { GeocodeResponseItem } from "../../types/GeocodeResponseItem.type";
 import { mapGeoItem } from "../../utils/mapping";
 import { AutocompleteOption } from "../AutocompleteOption/AutocompleteOption";
-import { IconSearch } from "@tabler/icons-react";
 
 const nameSubject = new Subject<string>();
 const requestGeoData = (name: string) =>
@@ -163,9 +163,10 @@ const Geocoding = ({ onSetGeocode }: any) => {
         <TextInput
           leftSectionPointerEvents="none"
           leftSection={<IconSearch />}
+          variant="filled"
           size="md"
-          variant="unstyled"
-          placeholder="Search a location"
+          radius="xl"
+          placeholder="Search for a location"
           value={value}
           onChange={onTextInputChanged}
           onClick={() => combobox.openDropdown()}

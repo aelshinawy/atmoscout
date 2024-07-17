@@ -29,7 +29,7 @@ export const ThemeToggleButton = () => {
   }, [theme]);
 
   return (
-    <ActionIcon variant="subtle" size="lg" radius="md" onClick={toggleTheme}>
+    <ActionIcon variant="subtle" size="xl" radius="xl" onClick={toggleTheme}>
       {mapThemeToIcon(theme)}
     </ActionIcon>
   );

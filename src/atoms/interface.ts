@@ -8,7 +8,7 @@ export enum ColorTheme {
 }
 
 const colorThemeAtom = atomWithStorage("colorScheme", ColorTheme.AUTO);
-//
+
 const themeTransitions = {
   [ColorTheme.AUTO]: ColorTheme.LIGHT,
   [ColorTheme.LIGHT]: ColorTheme.DARK,

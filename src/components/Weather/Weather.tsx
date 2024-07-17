@@ -1,4 +1,5 @@
-import { Stack, Text, Title } from "@mantine/core";
+import { em, Text } from "@mantine/core";
+import { IconDroplets } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { filter, from, of, switchMap, tap } from "rxjs";
 
@@ -28,21 +29,18 @@ export const Weather = ({ geocode }: any) => {
     return () => sub.unsubscribe();
   }, [geocode]);
   return response ? (
-    <Stack>
-      <Text>{response?.current?.time}</Text>
-      <Title order={1}>
+    <>
+      <Text size={em(200)} lh={1} fw={700}>
         {response?.current?.temperature_2m}
-        {response?.current_units?.temperature_2m}
-      </Title>
-      <Text>
-        feels like: {response?.current?.apparent_temperature}
-        {response?.current_units?.apparent_temperature}
+        <Text component="span" size={em(5)} lh={1} fw={400}>
+          {response?.current_units?.temperature_2m}
+        </Text>
       </Text>
-
+      <IconDroplets />
       <Text>
-        Humidity: {response?.current?.relative_humidity_2m}
+        {response?.current?.relative_humidity_2m}
         {response?.current_units?.relative_humidity_2m}
       </Text>
-    </Stack>
+    </>
   ) : null;
 };
