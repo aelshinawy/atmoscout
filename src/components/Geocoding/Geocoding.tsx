@@ -24,6 +24,7 @@ import { GeocodeData } from "../../types/GeocodeData.type";
 import { GeocodeResponseItem } from "../../types/GeocodeResponseItem.type";
 import { mapGeoItem } from "../../utils/mapping";
 import { AutocompleteOption } from "../AutocompleteOption/AutocompleteOption";
+import { IconSearch } from "@tabler/icons-react";
 
 const nameSubject = new Subject<string>();
 const requestGeoData = (name: string) =>
@@ -160,7 +161,10 @@ const Geocoding = ({ onSetGeocode }: any) => {
     >
       <Combobox.Target>
         <TextInput
-          label="Location"
+          leftSectionPointerEvents="none"
+          leftSection={<IconSearch />}
+          size="md"
+          variant="unstyled"
           placeholder="Search a location"
           value={value}
           onChange={onTextInputChanged}
