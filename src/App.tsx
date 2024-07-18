@@ -69,11 +69,14 @@ export default function App() {
         </AppShell.Main>
         <AppShell.Footer>
           <Container>
-            <Text p="xs" c="dimmed" ta="center">
-              {`Made with 💖 by `}
+            <Text p="xs" fw={400} c="dimmed" ta="center">
+              <Text fw={400} component="span">
+                {`AtmoScout (v0.0.1) - `}
+              </Text>
+              {`Made with 💖 by  `}
               <a href="https://github.com/aelshinawy" target="_blank">
-                <Text fs="italic" fw={700} component="span">
-                  Ahmed El-Shinawy
+                <Text fs="italic" fw={400} component="span">
+                  aelshinawy
                 </Text>
               </a>
             </Text>

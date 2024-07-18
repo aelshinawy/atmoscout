@@ -13,10 +13,10 @@ export const Weather = () => {
   const {
     isLoading,
     hasData,
-    data: response = {},
+    data: response,
   } = useLoadableAtom(useAtomValue(weatherDataAtom));
 
-  return hasData && !isLoading ? (
+  return hasData && !isLoading && response ? (
     <Flex direction="column">
       <Flex direction="row">
         <Text size={em(200)} lh={1} fw={700}>
