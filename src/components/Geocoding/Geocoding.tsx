@@ -8,119 +8,53 @@ import {
   useCombobox,
 } from "@mantine/core";
 import { IconSearch } from "@tabler/icons-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { useAtom, useAtomValue } from "jotai";
+import { ChangeEvent, useState } from "react";
 import { CircleFlag } from "react-circle-flags";
 import {
-  debounceTime,
-  distinctUntilChanged,
-  filter,
-  finalize,
-  from,
-  map,
-  Subject,
-  switchMap,
-  tap,
-} from "rxjs";
+  locationListByCountryAtom,
+  locationSearchSubject,
+  selectedLocationIdAtom,
+} from "../../atoms/geocode";
 import { GeocodeData } from "../../types/GeocodeData.type";
 import { GeocodeResponseItem } from "../../types/GeocodeResponseItem.type";
 import { mapGeoItem } from "../../utils/mapping";
 import { AutocompleteOption } from "../AutocompleteOption/AutocompleteOption";
+import useLoadableAtom from "../../hooks/useLoadableAtom";
 
-const nameSubject = new Subject<string>();
-const requestGeoData = (name: string) =>
-  from(
-    fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${name}&count=10&language=en&format=json`
-    ).then((resp) => resp.json())
+const Geocoding = () => {
+  const [search, setSearch] = useState("");
+
+  const [selectedLocation, setSelectedLocation] = useAtom(
+    selectedLocationIdAtom
   );
 
-const Geocoding = ({ onSetGeocode }: any) => {
-  const [value, setValue] = useState<string>("");
-  const [loading, setLoading] = useState(false);
-  const [empty, setEmpty] = useState(false);
-  const [resp, setResp] = useState<Array<GeocodeData>>();
-  const [list, setList] = useState<any>();
+  const {
+    isLoading: isLocationListLoading = false,
+    hasData: hasLocationListData,
+    data: locationListByCountry = [],
+  } = useLoadableAtom(useAtomValue(locationListByCountryAtom));
 
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
-  useEffect(() => {
-    const sub = nameSubject
-      .pipe(
-        distinctUntilChanged(),
-        debounceTime(500),
-        map((name: string) => name.replace(" ", "+")),
-        tap(() => setLoading(true)),
-        switchMap((name) =>
-          requestGeoData(name).pipe(
-            finalize(() => setLoading(false)),
-            tap((resp) => {
-              if (!resp.results) setEmpty(true);
-              else {
-                setEmpty(false);
-                setList(resp.results);
-              }
-            }),
-            filter((resp) => resp.results),
-            map((resp) => resp.results),
-            map(groupByCountry)
-          )
-        )
-      )
-      .subscribe({
-        next: (v) => {
-          setResp(v);
-        },
-        error: console.error,
-      });
-
-    return () => sub.unsubscribe();
-  }, []);
-
-  const groupByCountry = (list: Array<GeocodeResponseItem>) => {
-    const countrySet = new Map();
-    const groupedList: Array<GeocodeData> = list.reduce((acc, item) => {
-      const idx = countrySet.get(item.country_id);
-      if (idx !== undefined) {
-        acc[idx] = { ...acc[idx], places: [...acc[idx].places, item] };
-      } else {
-        countrySet.set(item.country_id, acc.length);
-        acc.push({
-          country: item.country,
-          country_code: item.country_code,
-          country_id: item.country_id,
-          places: [{ ...item }],
-        });
-      }
-      return acc;
-    }, [] as Array<GeocodeData>);
-
-    return groupedList;
-  };
-
   const onTextInputChanged = (event: ChangeEvent<HTMLInputElement>) => {
-    setValue(event.currentTarget.value);
-    setResp(undefined);
-    if (event.currentTarget.value.trim() !== "") {
-      nameSubject.next(event.currentTarget.value);
-      combobox.resetSelectedOption();
-      combobox.openDropdown();
-    }
+    setSearch(event.currentTarget.value);
+    locationSearchSubject.next(event.currentTarget.value);
+    combobox.resetSelectedOption();
+    combobox.openDropdown();
   };
 
   const onFocused = () => {
     combobox.openDropdown();
-    if (resp === undefined) {
-      nameSubject.next(value);
-    }
   };
 
   const options = (item: GeocodeResponseItem) => (
     <Combobox.Option
       key={item.id}
       value={item.id.toString()}
-      active={item.id.toString() === value}
+      active={item.id.toString() === selectedLocation}
     >
       <AutocompleteOption item={mapGeoItem(item)} />
     </Combobox.Option>
@@ -139,7 +73,7 @@ const Geocoding = ({ onSetGeocode }: any) => {
     </Group>
   );
 
-  const comboOptions = (resp || []).map((item, id) => (
+  const comboOptions = (locationListByCountry ?? []).map((item) => (
     <Combobox.Group
       key={`${item.country}${item.country_id}`}
       label={groupLabel(item)}
@@ -151,10 +85,7 @@ const Geocoding = ({ onSetGeocode }: any) => {
   return (
     <Combobox
       onOptionSubmit={(optionValue) => {
-        setValue(optionValue);
-        onSetGeocode(
-          list.find((v: GeocodeResponseItem) => (v.id = +optionValue))
-        );
+        setSelectedLocation(optionValue);
         combobox.closeDropdown();
       }}
       store={combobox}
@@ -167,19 +98,24 @@ const Geocoding = ({ onSetGeocode }: any) => {
           size="md"
           radius="xl"
           placeholder="Search for a location"
-          value={value}
+          value={search}
           onChange={onTextInputChanged}
           onClick={() => combobox.openDropdown()}
           onFocus={onFocused}
           onBlur={() => combobox.closeDropdown()}
-          rightSection={loading && <Loader size={18} type="bars" />}
+          rightSection={
+            search && isLocationListLoading && <Loader size={18} type="bars" />
+          }
         />
       </Combobox.Target>
 
-      <Combobox.Dropdown hidden={resp === undefined}>
+      <Combobox.Dropdown hidden={isLocationListLoading}>
         <Combobox.Options mah={500} style={{ overflowY: "auto" }}>
-          {comboOptions}
-          {empty && <Combobox.Empty>No results found</Combobox.Empty>}
+          {hasLocationListData && locationListByCountry.length > 0 ? (
+            comboOptions
+          ) : (
+            <Combobox.Empty>No results found</Combobox.Empty>
+          )}
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>

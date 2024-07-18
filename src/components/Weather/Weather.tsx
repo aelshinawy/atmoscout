@@ -1,46 +1,113 @@
-import { em, Text } from "@mantine/core";
-import { IconDroplets } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
-import { filter, from, of, switchMap, tap } from "rxjs";
+import { em, Text, Flex, Tooltip } from "@mantine/core";
+import {
+  IconDroplets,
+  IconGauge,
+  IconRipple,
+  IconWind,
+} from "@tabler/icons-react";
+import { useAtomValue } from "jotai";
+import { weatherDataAtom } from "../../atoms/weather";
+import useLoadableAtom from "../../hooks/useLoadableAtom";
 
-type ForecastApiParams = {
-  latitude: number;
-  longitude: number;
-};
-const requestForecast = (
-  params: ForecastApiParams = { latitude: 31.5625, longitude: 30 }
-) =>
-  from(
-    fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${params.latitude}&longitude=${params.longitude}&current=temperature_2m,relative_humidity_2m,apparent_temperature`
-    ).then((resp) => resp.json())
-  );
+export const Weather = () => {
+  const {
+    isLoading,
+    hasData,
+    data: response = {},
+  } = useLoadableAtom(useAtomValue(weatherDataAtom));
 
-export const Weather = ({ geocode }: any) => {
-  const [response, setResponse] = useState<any>();
-  useEffect(() => {
-    const sub = of(geocode)
-      .pipe(
-        filter((val) => val !== undefined),
-        switchMap((val) => requestForecast(val)),
-        tap(setResponse)
-      )
-      .subscribe({ next: console.log, error: console.error });
-    return () => sub.unsubscribe();
-  }, [geocode]);
-  return response ? (
-    <>
-      <Text size={em(200)} lh={1} fw={700}>
-        {response?.current?.temperature_2m}
-        <Text component="span" size={em(5)} lh={1} fw={400}>
+  return hasData && !isLoading ? (
+    <Flex direction="column">
+      <Flex direction="row">
+        <Text size={em(200)} lh={1} fw={700}>
+          {response?.current?.temperature_2m}
+        </Text>
+        <Text component="span" size={em(40)} lh={1} fw={400}>
           {response?.current_units?.temperature_2m}
         </Text>
-      </Text>
-      <IconDroplets />
+      </Flex>
+      <Flex direction="row" justify="center">
+        <Text c="dimmed" size={em(30)} mb={em(20)} fw={400}>
+          it feels like {response?.current?.apparent_temperature}{" "}
+        </Text>
+        <Text c="dimmed" component="span" size={em(20)} lh={1} fw={400}>
+          {response?.current_units?.apparent_temperature}
+        </Text>
+      </Flex>
+
+      <Flex direction="row" justify="space-between">
+        <Tooltip.Group openDelay={500}>
+          <Tooltip
+            label="Humidity"
+            transitionProps={{ transition: "pop", duration: 300 }}
+            openDelay={500}
+          >
+            <Flex direction="column" align="center" gap="sm">
+              <IconDroplets />
+              <Text size="xl">
+                {response?.current?.relative_humidity_2m}
+                <Text c="dimmed" component="span" size="md">
+                  {response?.current_units?.relative_humidity_2m}
+                </Text>
+              </Text>
+            </Flex>
+          </Tooltip>
+
+          <Tooltip
+            label="Wind"
+            transitionProps={{ transition: "pop", duration: 300 }}
+            openDelay={500}
+          >
+            <Flex direction="column" align="center" gap="sm">
+              <IconWind />
+              <Text size="xl">
+                {response?.current?.wind_speed_10m}
+                <Text c="dimmed" component="span" size="md">
+                  {response?.current_units?.wind_speed_10m}
+                </Text>
+              </Text>
+            </Flex>
+          </Tooltip>
+
+          <Tooltip
+            label="Sealevel pressure"
+            transitionProps={{ transition: "pop", duration: 300 }}
+            openDelay={500}
+          >
+            <Flex direction="column" align="center" gap="sm">
+              <IconRipple />
+              <Text size="xl">
+                {response?.current?.pressure_msl}
+                <Text c="dimmed" component="span" size="md">
+                  {response?.current_units?.pressure_msl}
+                </Text>
+              </Text>
+            </Flex>
+          </Tooltip>
+
+          <Tooltip
+            label="Surface pressure"
+            transitionProps={{ transition: "pop", duration: 300 }}
+            openDelay={500}
+          >
+            <Flex direction="column" align="center" gap="sm">
+              <IconGauge />
+              <Text size="xl">
+                {response?.current?.surface_pressure}
+                <Text c="dimmed" component="span" size="md">
+                  {response?.current_units?.surface_pressure}
+                </Text>
+              </Text>
+            </Flex>
+          </Tooltip>
+        </Tooltip.Group>
+      </Flex>
+
+      {/* <IconDroplets />
       <Text>
         {response?.current?.relative_humidity_2m}
         {response?.current_units?.relative_humidity_2m}
-      </Text>
-    </>
+      </Text> */}
+    </Flex>
   ) : null;
 };

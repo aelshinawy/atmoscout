@@ -12,7 +12,6 @@ import {
 } from "@mantine/core";
 import "@mantine/core/styles.css";
 import { useDisclosure } from "@mantine/hooks";
-import { useState } from "react";
 import CurrentTime from "./components/CurrentTime/CurrentTime";
 import Geocoding from "./components/Geocoding/Geocoding";
 import { ThemeToggleButton } from "./components/ThemeToggleButton/ThemeToggleButton";
@@ -20,8 +19,6 @@ import { Weather } from "./components/Weather/Weather";
 import { theme } from "./theme";
 
 export default function App() {
-  const [geocode, setGeocode] = useState<any>();
-
   const [navbarOpened, { toggle: toggleNavbar }] = useDisclosure();
 
   return (
@@ -47,7 +44,7 @@ export default function App() {
             </Flex>
             <Space w="lg" />
             <Flex direction="column" style={{ flexGrow: 1 }}>
-              <Geocoding onSetGeocode={setGeocode} />
+              <Geocoding />
             </Flex>
             <Space w="xl" />
             <Flex align="center" justify="flex-end">
@@ -67,9 +64,7 @@ export default function App() {
         </AppShell.Navbar>
         <AppShell.Main>
           <Center>
-            <Flex direction="column">
-              {geocode && <Weather geocode={geocode} />}
-            </Flex>
+            <Flex direction="column">{<Weather />}</Flex>
           </Center>
         </AppShell.Main>
         <AppShell.Footer>
